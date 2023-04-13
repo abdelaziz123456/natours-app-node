@@ -75,13 +75,43 @@ app.post('/api/v1/tours', (req, res) => {
 // update existing tour api
 
 app.patch('/api/v1/tours/:id', (req, res) => {
-  //clg(req.)
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<updated tour here ></updated>',
-    },
-  });
+  let tour = tours.find((tour) => tour.id == req.params.id);
+
+  if (!tour) {
+    res.status(404).json({
+      status: 'fail',
+      data: {
+        message: "this tour isn't found",
+      },
+    });
+  } else {
+    let otherTours = tours.filter((tour) => tour.id != req.params.id);
+
+    let newTours = [...otherTours, { ...tour, ...req.body }];
+    console.log(newTours);
+    fs.writeFile(
+      './dev-data/data/tours-simple.json',
+      JSON.stringify(newTours),
+      (err) => {
+        if (!err) {
+          res.status(200).json({
+            status: 'success',
+            data: {
+              tour: '<updated tour here ></updated>',
+              tours: newTours,
+            },
+          });
+        } else {
+          res.status(404).json({
+            status: 'failed',
+            data: {
+              message: 'cannot update the tour',
+            },
+          });
+        }
+      }
+    );
+  }
 });
 
 app.listen(port, () => {
