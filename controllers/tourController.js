@@ -6,7 +6,29 @@ const getSpecificTour = (id) => {
   return tours.find((tour) => tour.id == id);
 };
 
-const notExisting = (res) => {
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name) {
+    res.status(404).json({ status: 'failed', message: 'the name is required' });
+  }
+  if (!req.body.difficulty) {
+    res
+      .status(404)
+      .json({ status: 'failed', message: 'the difficulty is required' });
+  }
+  next();
+};
+
+exports.checkId = (req, res, next) => {
+  let tour = tours.find((tour) => tour.id == req.params.id);
+  if (!tour) {
+    res.status(404).json({
+      message: 'this tour is invalid',
+    });
+  }
+  next();
+};
+
+exports.notExisting = (res) => {
   res.status(404).json({
     status: 'failed',
     data: {
@@ -31,14 +53,11 @@ exports.getToursHandler = (req, res) => {
 
 exports.getSpecificTourhandler = (req, res) => {
   let tour = getSpecificTour(req.params.id);
-  if (tour) {
-    res.status(200).json({
-      status: 'success',
-      data: { tour },
-    });
-  } else {
-    notExisting(res);
-  }
+
+  res.status(200).json({
+    status: 'success',
+    data: { tour },
+  });
 };
 
 // add new tour handler

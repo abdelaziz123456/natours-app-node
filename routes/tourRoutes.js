@@ -5,6 +5,8 @@ const {
   getSpecificTourhandler,
   updateTourHandler,
   deleteTourHandler,
+  checkId,
+  checkBody,
 } = require('../controllers/tourController');
 const router = express.Router();
 
@@ -13,10 +15,10 @@ router.param('id', (req, res, next, value) => {
   next();
 });
 
-router.route('/').get(getToursHandler).post(addNewTourHandler);
+router.route('/').get(getToursHandler).post(checkBody, addNewTourHandler);
 router
   .route('/:id')
-  .get(getSpecificTourhandler)
+  .get(checkId, getSpecificTourhandler)
   .patch(updateTourHandler)
   .delete(deleteTourHandler);
 
