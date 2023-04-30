@@ -2,6 +2,11 @@ const fs = require('fs');
 // const filePath = `${__dirname}/../dev-data/data/tours-simple.json`;
 // const tours = JSON.parse(fs.readFileSync(filePath));
 const Tour = require('../models/tourModel');
+const {
+  excludeFields,
+  sortHandler,
+  fieldhandler,
+} = require('../utiles/toursFeatures');
 
 exports.notExisting = (res) => {
   res.status(404).json({
@@ -15,38 +20,15 @@ exports.notExisting = (res) => {
 //getAllTours handler
 exports.getToursHandler = async (req, res) => {
   try {
-    let queryObject = { ...req.query };
-
-    let excludedFileds = ['limit', 'page', 'field', 'sort'];
-
-    excludedFileds.forEach((el) => delete queryObject[el]);
-
-    //{difficulty:'easy',duration:{$gte:5}}
-    //{ duration: { gte: '5' }, difficulty: 'easy' }
-    let queryStr = JSON.stringify(queryObject);
-
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-    let query = Tour.find(JSON.parse(queryStr));
+    let query = excludeFields(req, Tour);
 
     //for sorting
 
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-createdAt');
-    }
+    query = sortHandler(req, query);
 
     // for limiting fields
 
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query = query.select(fields);
-    } else {
-      query = query.select('-__v -description');
-    }
+    query = fieldhandler(req, query);
 
     // for pagination
 
@@ -78,6 +60,15 @@ exports.getToursHandler = async (req, res) => {
       message: err,
     });
   }
+};
+
+//get top 5 tours
+
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  // req.query.fields = 'price';
+  next();
 };
 
 //get specific tour handler
