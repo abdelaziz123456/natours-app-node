@@ -1,3 +1,5 @@
+//exclude fileds handler
+
 exports.excludeFields = (req, Tour) => {
   console.log({ ...req.query });
   let queryObject = { ...req.query };
@@ -14,6 +16,7 @@ exports.excludeFields = (req, Tour) => {
   let query = Tour.find(JSON.parse(queryStr));
   return query;
 };
+//sort    handler
 
 exports.sortHandler = (req, query) => {
   if (req.query.sort) {
@@ -27,6 +30,8 @@ exports.sortHandler = (req, query) => {
   return query;
 };
 
+//select  fileds handler
+
 exports.fieldhandler = (req, query) => {
   if (req.query.fields) {
     const fields = req.query.fields.split(',').join(' ');
@@ -34,5 +39,25 @@ exports.fieldhandler = (req, query) => {
   } else {
     query = query.select('-__v -description');
   }
+  return query;
+};
+
+//pagination handler
+
+exports.paginationHandler = async (req, query, Tour) => {
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 100;
+  const skip = (page - 1) * limit;
+
+  query = query.skip(skip).limit(limit);
+
+  if (req.query.page) {
+    const numOfTours = await Tour.countDocuments();
+
+    if (skip >= numOfTours) {
+      throw new Error("this page doesn't exist");
+    }
+  }
+
   return query;
 };

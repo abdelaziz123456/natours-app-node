@@ -1,11 +1,11 @@
 const fs = require('fs');
-// const filePath = `${__dirname}/../dev-data/data/tours-simple.json`;
-// const tours = JSON.parse(fs.readFileSync(filePath));
+
 const Tour = require('../models/tourModel');
 const {
   excludeFields,
   sortHandler,
   fieldhandler,
+  paginationHandler,
 } = require('../utiles/toursFeatures');
 
 exports.notExisting = (res) => {
@@ -32,21 +32,9 @@ exports.getToursHandler = async (req, res) => {
 
     // for pagination
 
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 100;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numOfTours = await Tour.countDocuments();
-
-      if (skip >= numOfTours) {
-        throw new Error("this page doesn't exist");
-      }
-    }
+    query = paginationHandler(req, query, Tour);
     const allTours = await query;
-    //const allTours = await Tour.find(req.query);
+
     res.status(200).json({
       status: 'success',
       results: allTours.length,
@@ -84,7 +72,7 @@ exports.getSpecificTourhandler = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       status: 'fail',
-      message: err,
+      message: error,
     });
   }
 };
